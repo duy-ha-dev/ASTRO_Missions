@@ -3,7 +3,7 @@
 
 
 # Mission Parameters:
-hover_time=20
+distance=20
 alt=8
 
 

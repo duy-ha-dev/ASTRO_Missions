@@ -9,7 +9,13 @@ from skymission.concurrency import tick
 from skymission.mission import Mission
 from skymission.mission import callback
 from skymission.mission import panic
+import geo
 
+class Waypoint:
+    def __init__(self, lat, lon, alt):
+        self.lat = lat
+        self.lon = lon
+        self.alt = alt
 
 class LocationMessage(BaseMessage):
     """
@@ -105,6 +111,7 @@ class HorizontalMission(Mission):
         alt = data['alt']
         distance = data['distance']
 
+        
         #Distance 20 meters
         #Start location
         lat_start = 29.716170
@@ -113,7 +120,8 @@ class HorizontalMission(Mission):
         lat_end = 29.716006
         lon_end = 95.409253 
 
-
+        start_cord = Waypoint(lat_start, lon_start, alt)
+        end_cord = Waypoint(lat_end, lon_end, alt)
 
         try:
             self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
@@ -127,11 +135,11 @@ class HorizontalMission(Mission):
             # self.dc.land()
             # self.log.info('Landed!')
 
-            self.dc.goto(lat_start, lon_start, alt, airspeed=2)
+            self.dc.goto(coords=(start_cord.lat, start_cord.lon), altitude=start_cord.alt, airspeed=2)
             self.log.debug('Arrived at starting location, now heading toward end location')
             time.sleep(5)
 
-            self.dc.goto(lat_end, lon_end, alt, airspeed=2)
+            self.dc.goto(coords=(end_cord.lat, end_cord.lon), altitude=end_cord.alt, airspeed=2)
             self.log.debug('Arrived at end location. Now landing')
             time.sleep(5)
             self.dc.land()
