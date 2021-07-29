@@ -12,4 +12,4 @@ $ python horizontal.py --fc-addr <flight controller MAV proxy address> --log-fil
 
 |Endpoint|Purpose|Required parameters|
 |-|-|-|
-|`/start-mission`|Instructs the drone to takeoff to the specified altitude, hover for the specified time, and land.|`alt`, `distance`|
+|`/start-mission`|Instructs the drone to takeoff to the specified altitude, move forward a certain distance, and land.|`alt`, `distance`|

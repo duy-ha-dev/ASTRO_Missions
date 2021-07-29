@@ -46,17 +46,17 @@ class LocationMessage(BaseMessage):
         )
 
 
-class HorizontalMission(Mission):
+class VerticalMission(Mission):
     """
-    A mission to take off and hover, move forward a certain distance and land.
+    A mission to hover a certain altitude, then move up to another altitude.
     """
 
     port = 4000
-    mission_id = 'horizontal'
+    mission_id = 'vertical'
 
     def __init__(self, fc_addr, log_file):
         """
-        Create a HorizontalMission, which is started as soon as the class is instantiated.
+        Create a VerticalMission, which is started as soon as the class is instantiated.
 
         :param fc_addr: MAVProxy address of the flight controller.
         :param log_file: Name of log file for location data.
@@ -68,7 +68,7 @@ class HorizontalMission(Mission):
         self.log.debug('Drone controller and logger initialized successfully')
 
         self.cancel_tick = self.start_location_log()
-        self.log.info('Horizontal mission initialization complete')
+        self.log.info('Vertical mission initialization complete')
 
         self.start_server()
 
@@ -95,12 +95,12 @@ class HorizontalMission(Mission):
     @callback(
         endpoint='/start-mission',
         description='Gives the drone an altitude and distance.',
-        required_params=('alt', 'distance'),
+        required_params=('alt1', 'alt2', 'position'),
         public=True,
     )
     def start_mission(self, data, *args, **kwargs):
         """
-        Client-invoked endpoint to begin the horizontal mission.
+        Client-invoked endpoint to begin the vertical mission.
 
         :param data: Required to be of the form:
                      {
@@ -108,28 +108,32 @@ class HorizontalMission(Mission):
                          'distance': ..., # distance travel (s)
                      }
         """
-        alt = data['alt']
-        distance = data['distance']
+        alt1 = data['alt1']
+        alt2 = data['alt2']
+        position = data['position']
 
 
-        #Horizontal Distance 20 meters
-      
-        ####For the future: implement ways to change the value of the coordinates given the distance,
-        #Currently, distance parameter does nothing####
+        #Get coordinates from our position
+        if position == 1:
+            lat = 29.716170
+            lon = 95.409253
+        elif position == 2:
+            lat = 29.716084
+            lon = 95.409253
+        elif position == 3:
+            lat = 29.716006
+            lon = 95.409253
+        else:
+            self.log.debug('Invalid position: please give a position 1, 2, or 3.')
 
-        #Start location
-        lat_start = 29.716170
-        lon_start = 95.409253
-        #End Location
-        lat_end = 29.716006
-        lon_end = 95.409253 
 
-        start_coord = Waypoint(lat_start, lon_start, alt)
-        end_coord = Waypoint(lat_end, lon_end, alt)
+        #Start and end coordinates
+        start_coord = Waypoint(lat, lon, alt1)
+        end_coord = Waypoint(lat, lon, alt2)
 
         try:
-            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
-            self.dc.take_off(alt)
+            self.log.debug('Taking off to first altitude: {alt1}'.format(alt=alt1))
+            self.dc.take_off(alt1)
             self.log.debug('Reached altitude, moving to start location')
 
             # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
@@ -140,12 +144,14 @@ class HorizontalMission(Mission):
             # self.log.info('Landed!')
 
             self.dc.goto(coords=(start_coord.lat, start_coord.lon), altitude=start_coord.alt, airspeed=2)
-            self.log.debug('Arrived at starting location, now heading toward end location')
-            time.sleep(5)
+            self.log.debug('Arrived at starting location, now heading toward end location in 10 seconds')
+            time.sleep(10)
 
             self.dc.goto(coords=(end_coord.lat, end_coord.lon), altitude=end_coord.alt, airspeed=2)
-            self.log.debug('Arrived at end location. Landing')
-            time.sleep(5)
+            self.log.debug('Arrived at end location. Landing in 10 seconds')
+            time.sleep(10)
+
+            self.log.debug('Landing')
             self.dc.land()
             self.log.info('Landed!')
 
@@ -174,7 +180,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    HorizontalMission(
+    VerticalMission(
         fc_addr=args.fc_addr,
         log_file=args.log_file,
     )

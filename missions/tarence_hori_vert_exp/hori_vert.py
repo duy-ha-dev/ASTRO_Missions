@@ -46,17 +46,17 @@ class LocationMessage(BaseMessage):
         )
 
 
-class HorizontalMission(Mission):
+class HoriVertMission(Mission):
     """
-    A mission to take off and hover, move forward a certain distance and land.
+    A mission to take off, move forward horizontally while moving up and down vertically.
     """
 
     port = 4000
-    mission_id = 'horizontal'
+    mission_id = 'hori_vert'
 
     def __init__(self, fc_addr, log_file):
         """
-        Create a HorizontalMission, which is started as soon as the class is instantiated.
+        Create a HoriVertMission, which is started as soon as the class is instantiated.
 
         :param fc_addr: MAVProxy address of the flight controller.
         :param log_file: Name of log file for location data.
@@ -68,7 +68,7 @@ class HorizontalMission(Mission):
         self.log.debug('Drone controller and logger initialized successfully')
 
         self.cancel_tick = self.start_location_log()
-        self.log.info('Horizontal mission initialization complete')
+        self.log.info('Hori_Vert mission initialization complete')
 
         self.start_server()
 
@@ -95,12 +95,12 @@ class HorizontalMission(Mission):
     @callback(
         endpoint='/start-mission',
         description='Gives the drone an altitude and distance.',
-        required_params=('alt', 'distance'),
+        required_params=('alt1', 'alt2'),
         public=True,
     )
     def start_mission(self, data, *args, **kwargs):
         """
-        Client-invoked endpoint to begin the horizontal mission.
+        Client-invoked endpoint to begin the hori_vert mission.
 
         :param data: Required to be of the form:
                      {
@@ -108,28 +108,33 @@ class HorizontalMission(Mission):
                          'distance': ..., # distance travel (s)
                      }
         """
-        alt = data['alt']
-        distance = data['distance']
+        alt1 = data['alt1']
+        alt2 = data['alt2']
 
 
-        #Horizontal Distance 20 meters
-      
-        ####For the future: implement ways to change the value of the coordinates given the distance,
-        #Currently, distance parameter does nothing####
+        #Initializing our 5 points
+        ####For future reference, consider making the number of up-and-down vertical movements a parameter####
+        lat1 = 29.716335
+        lon1 = 95.409253
+        lat2 = 29.716253
+        lon2 = 95.409253
+        lat3 = 29.716170
+        lon3 = 95.409253
+        lat4 = 29.716084
+        lon4 = 95.409253
+        lat5 = 29.716006
+        lon5 = 95.409253
 
-        #Start location
-        lat_start = 29.716170
-        lon_start = 95.409253
-        #End Location
-        lat_end = 29.716006
-        lon_end = 95.409253 
+        first_coord = Waypoint(lat1, lon1, alt1)
+        second_coord = Waypoint(lat2, lon2, alt2)
+        third_coord = Waypoint(lat3, lon3, alt1)
+        fourth_coord = Waypoint(lat4, lon4, alt2)
+        fifth_coord = Waypoint(lat5, lon5, alt1)
 
-        start_coord = Waypoint(lat_start, lon_start, alt)
-        end_coord = Waypoint(lat_end, lon_end, alt)
 
         try:
-            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
-            self.dc.take_off(alt)
+            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt1))
+            self.dc.take_off(alt1)
             self.log.debug('Reached altitude, moving to start location')
 
             # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
@@ -139,13 +144,26 @@ class HorizontalMission(Mission):
             # self.dc.land()
             # self.log.info('Landed!')
 
-            self.dc.goto(coords=(start_coord.lat, start_coord.lon), altitude=start_coord.alt, airspeed=2)
-            self.log.debug('Arrived at starting location, now heading toward end location')
+            self.dc.goto(coords=(first_coord.lat, first_coord.lon), altitude=first_coord.alt, airspeed=2)
+            self.log.debug('Arrived at starting location, now heading toward point 2')
             time.sleep(5)
 
-            self.dc.goto(coords=(end_coord.lat, end_coord.lon), altitude=end_coord.alt, airspeed=2)
-            self.log.debug('Arrived at end location. Landing')
+            self.dc.goto(coords=(second_coord.lat, second_coord.lon), altitude=second_coord.alt, airspeed=2)
+            self.log.debug('Arrived at point 2, now heading toward point 3')
             time.sleep(5)
+
+            self.dc.goto(coords=(third_coord.lat, third_coord.lon), altitude=third_coord.alt, airspeed=2)
+            self.log.debug('Arrived at point 3, now heading toward point 4')
+            time.sleep(5)
+
+            self.dc.goto(coords=(fourth_coord.lat, fourth_coord.lon), altitude=fourth_coord.alt, airspeed=2)
+            self.log.debug('Arrived at point 4, now heading toward point 5')
+            time.sleep(5)
+
+            self.dc.goto(coords=(fifth_coord.lat, fifth_coord.lon), altitude=fifth_coord.alt, airspeed=2)
+            self.log.debug('Arrived at point 5, now landing')
+            time.sleep(5)
+
             self.dc.land()
             self.log.info('Landed!')
 
@@ -174,7 +192,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    HorizontalMission(
+    HoriVertMission(
         fc_addr=args.fc_addr,
         log_file=args.log_file,
     )
