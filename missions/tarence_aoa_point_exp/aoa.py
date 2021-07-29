@@ -136,8 +136,8 @@ class AoAMission(Mission):
 
 
         try:
-            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt1))
-            self.dc.take_off(alt1)
+            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
+            self.dc.take_off(alt)
             self.log.debug('Reached altitude, moving to start location')
 
             # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
