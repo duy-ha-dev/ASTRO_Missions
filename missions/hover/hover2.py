@@ -9,13 +9,7 @@ from skymission.concurrency import tick
 from skymission.mission import Mission
 from skymission.mission import callback
 from skymission.mission import panic
-#import geo 
 
-# class Waypoint:
-#     def __init__(self, lat, lon, alt):
-#         self.lat = lat
-#         self.lon = lon
-#         self.alt = alt
 
 class LocationMessage(BaseMessage):
     """
@@ -46,17 +40,17 @@ class LocationMessage(BaseMessage):
         )
 
 
-class VerticalMission(Mission):
+class HoverMission(Mission):
     """
-    A mission to hover a certain altitude, then move up to another altitude.
+    A mission to take off, hover, and land.
     """
 
     port = 4000
-    mission_id = 'vertical'
+    mission_id = 'hover'
 
     def __init__(self, fc_addr, log_file):
         """
-        Create a VerticalMission, which is started as soon as the class is instantiated.
+        Create a HoverMission, which is started as soon as the class is instantiated.
 
         :param fc_addr: MAVProxy address of the flight controller.
         :param log_file: Name of log file for location data.
@@ -68,7 +62,7 @@ class VerticalMission(Mission):
         self.log.debug('Drone controller and logger initialized successfully')
 
         self.cancel_tick = self.start_location_log()
-        self.log.info('Vertical mission initialization complete')
+        self.log.info('Hover mission initialization complete')
 
         self.start_server()
 
@@ -94,85 +88,78 @@ class VerticalMission(Mission):
 
     @callback(
         endpoint='/start-mission',
-        description='Gives the drone an altitude and distance.',
-        required_params=('alt1', 'alt2', 'position'),
+        description='Gives the drone an altitude and hover time.',
+        required_params=('alt', 'hover_time'),
         public=True,
     )
     def start_mission(self, data, *args, **kwargs):
         """
-        Client-invoked endpoint to begin the vertical mission.
+        Client-invoked endpoint to begin the hover mission.
 
         :param data: Required to be of the form:
                      {
                          'alt': ...,  # Target altitude (m)
-                         'distance': ..., # distance travel (s)
+                         'hover_time': ..., # Hover time (s)
                      }
         """
-        alt1 = data['alt1']
-        alt2 = data['alt2']
-        position = data['position']
-
-
-        #Get coordinates from our position
-        if position == 1:
-            lat = 29.716170
-            lon = -95.409253
-        elif position == 2:
-            lat = 29.716084
-            lon = -95.409253
-        elif position == 3:
-            lat = 29.716006
-            lon = -95.409253
-        else:
-            self.log.debug('Invalid position: please give a position 1, 2, or 3.')
-
-
-        #Start and end coordinates
-        # start_coord = Waypoint(lat, lon, alt1)
-        # end_coord = Waypoint(lat, lon, alt2)
+        alt = data['alt']
+        hover_time = data['hover_time']
 
         try:
-            self.log.debug('Taking off to first altitude: {alt1}'.format(alt=alt1))
-            self.dc.take_off(alt1)
-            self.log.debug('Reached altitude, moving to start location')
+            self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
+            self.dc.take_off(alt)
+            self.log.debug('Take off complete')
 
-            # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
-            # time.sleep(hover_time)
+            time.sleep(3)
 
-            # self.log.info('Hovering complete; moving to start')
-            # self.dc.land()
-            # self.log.info('Landed!')
-        
-        #Move to start position
+            location = self.dc.read_gps()
+            self.log.debug('Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            nextlat, nextlon = lat, lon
+	    # Moving to location 1: center of the field
 
-            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt1, airspeed=2)
+            nextlat, nextlon = 29.71758978560598, -95.4055873521442
+
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
             self.log.debug('Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
+            time.sleep(3)
 
-        #Move to end position
-            nextlat, nextlon = lat, lon
+            # Moving to location 2
 
-            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt2, airspeed=2)
+            nextlat, nextlon = 29.717660833596735, -95.40562356196683
+
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
             self.log.debug('Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
-            
+            time.sleep(3)
 
-            self.log.debug('Mission Complete! Landing')
+            # Moving to location 3
+
+            nextlat, nextlon = 29.71772838737737, -95.40566513620766
+
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
+            time.sleep(3)
+
+            self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
+            time.sleep(hover_time)
+
+            self.log.info('Hovering complete; begin landing')
             self.dc.land()
             self.log.info('Landed!')
-
         except FlightAbortedException:
             self.log.warn('Flight aborted due to emergency panic!')
 
@@ -198,7 +185,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    VerticalMission(
+    HoverMission(
         fc_addr=args.fc_addr,
         log_file=args.log_file,
     )

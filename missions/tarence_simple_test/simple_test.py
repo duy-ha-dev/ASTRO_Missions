@@ -112,14 +112,14 @@ class SimpleTestMission(Mission):
 
 
         #Initializing our coordinates, which should be 3 meters from each other 
-        location = self.dc.vehicle.location.global_frame
+        
         ####For future reference, consider making the number of up-and-down vertical movements a parameter####
         #Start location
         lat_start = 29.716334
-        lon_start = 95.409326
+        lon_start = -95.409326
         #End Location
         lat_end = 29.716294
-        lon_end = 95.409326
+        lon_end = -95.409326
 
         start_coord = Waypoint(lat_start, lon_start, alt)
         end_coord = Waypoint(lat_end, lon_end, alt)
@@ -127,8 +127,11 @@ class SimpleTestMission(Mission):
 
         try:
             self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
+
+            location = self.dc.vehicle.location.global_frame
+
             self.dc.take_off(alt)
-            self.log.debug('Reached altitude, moving to start location')
+            self.log.debug('Reached altitude, moving to start location of {alt}'.format(alt=alt))
 
             # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
             # time.sleep(hover_time)
@@ -137,13 +140,18 @@ class SimpleTestMission(Mission):
             # self.dc.land()
             # self.log.info('Landed!')
 
+            location = self.dc.vehicle.location.global_frame
             self.dc.goto(coords=(start_coord.lat, start_coord.lon), altitude=start_coord.alt, airspeed=2)
-            self.log.debug('Arrived at starting location, now heading toward end location')
+            self.log.debug('Arrived at starting location ({lat}, {lon}), now heading toward end location'.format(lat=lat_start, lon=lon_start))
             time.sleep(5)
 
+
+            location = self.dc.vehicle.location.global_frame
             self.dc.goto(coords=(end_coord.lat, end_coord.lon), altitude=end_coord.alt, airspeed=2)
-            self.log.debug('Arrived at end location. Landing')
+            self.log.debug('Arrived at end location ({lat}, {lon}). Landing'.format(lat=lat_end, lon=lon_end))
             time.sleep(5)
+
+
             self.dc.land()
             self.log.info('Landed!')
 

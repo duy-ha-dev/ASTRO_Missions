@@ -11,11 +11,11 @@ from skymission.mission import callback
 from skymission.mission import panic
 #import geo 
 
-class Waypoint:
-    def __init__(self, lat, lon, alt):
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
+# class Waypoint:
+#     def __init__(self, lat, lon, alt):
+#         self.lat = lat
+#         self.lon = lon
+#         self.alt = alt
 
 class LocationMessage(BaseMessage):
     """
@@ -115,21 +115,21 @@ class HoriVertMission(Mission):
         #Initializing our 5 points
         ####For future reference, consider making the number of up-and-down vertical movements a parameter####
         lat1 = 29.716335
-        lon1 = 95.409253
+        lon1 = -95.409253
         lat2 = 29.716253
-        lon2 = 95.409253
+        lon2 = -95.409253
         lat3 = 29.716170
-        lon3 = 95.409253
+        lon3 = -95.409253
         lat4 = 29.716084
-        lon4 = 95.409253
+        lon4 = -95.409253
         lat5 = 29.716006
-        lon5 = 95.409253
+        lon5 = -95.409253
 
-        first_coord = Waypoint(lat1, lon1, alt1)
-        second_coord = Waypoint(lat2, lon2, alt2)
-        third_coord = Waypoint(lat3, lon3, alt1)
-        fourth_coord = Waypoint(lat4, lon4, alt2)
-        fifth_coord = Waypoint(lat5, lon5, alt1)
+        # first_coord = Waypoint(lat1, lon1, alt1)
+        # second_coord = Waypoint(lat2, lon2, alt2)
+        # third_coord = Waypoint(lat3, lon3, alt1)
+        # fourth_coord = Waypoint(lat4, lon4, alt2)
+        # fifth_coord = Waypoint(lat5, lon5, alt1)
 
 
         try:
@@ -144,26 +144,67 @@ class HoriVertMission(Mission):
             # self.dc.land()
             # self.log.info('Landed!')
 
-            self.dc.goto(coords=(first_coord.lat, first_coord.lon), altitude=first_coord.alt, airspeed=2)
-            self.log.debug('Arrived at starting location, now heading toward point 2')
+        #Move to First Location
+            nextlat, nextlon = lat1, lon1
+
+            self.log.debug('Navigating to waypoint 1: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt1, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
             time.sleep(5)
 
-            self.dc.goto(coords=(second_coord.lat, second_coord.lon), altitude=second_coord.alt, airspeed=2)
-            self.log.debug('Arrived at point 2, now heading toward point 3')
+        #Move to Second Location
+            nextlat, nextlon = lat2, lon2
+
+            self.log.debug('Navigating to waypoint 2: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt2, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
             time.sleep(5)
 
-            self.dc.goto(coords=(third_coord.lat, third_coord.lon), altitude=third_coord.alt, airspeed=2)
-            self.log.debug('Arrived at point 3, now heading toward point 4')
+        #Move to Third Location
+            nextlat, nextlon = lat3, lon3
+
+            self.log.debug('Navigating to waypoint 3: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt1, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
+            time.sleep(5)
+        
+        #Move to Fourth Location
+            nextlat, nextlon = lat4, lon4
+
+            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt2, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
+            time.sleep(5)
+        
+        #Move to Fifth Location
+            nextlat, nextlon = lat5, lon5
+
+            self.log.debug('Navigating to waypoint 5: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt1, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
             time.sleep(5)
 
-            self.dc.goto(coords=(fourth_coord.lat, fourth_coord.lon), altitude=fourth_coord.alt, airspeed=2)
-            self.log.debug('Arrived at point 4, now heading toward point 5')
-            time.sleep(5)
-
-            self.dc.goto(coords=(fifth_coord.lat, fifth_coord.lon), altitude=fifth_coord.alt, airspeed=2)
-            self.log.debug('Arrived at point 5, now landing')
-            time.sleep(5)
-
+            self.log.info('Mission complete; begin landing')
             self.dc.land()
             self.log.info('Landed!')
 

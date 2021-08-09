@@ -1,6 +1,6 @@
 # Hover Mission
 
-A simple mission that makes the drone take off to a specified height and fly upward to another certain height
+A simple mission that makes the drone take off to a specified height and fly upward to another certain height. Must instruct first altitude and second altitude; alt1 is starting altitude and alt2 is the end altitude. Must also give position 1, 2, or 3: these positions are spaced 10 yards apart and are predetermined according to the Vertical Experiment Flight Plan slide. 
 
 ## Usage
 

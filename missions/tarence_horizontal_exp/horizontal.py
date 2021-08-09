@@ -11,11 +11,11 @@ from skymission.mission import callback
 from skymission.mission import panic
 #import geo 
 
-class Waypoint:
-    def __init__(self, lat, lon, alt):
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
+# class Waypoint:
+#     def __init__(self, lat, lon, alt):
+#         self.lat = lat
+#         self.lon = lon
+#         self.alt = alt
 
 class LocationMessage(BaseMessage):
     """
@@ -119,13 +119,13 @@ class HorizontalMission(Mission):
 
         #Start location
         lat_start = 29.716170
-        lon_start = 95.409253
+        lon_start = -95.409253
         #End Location
         lat_end = 29.716006
-        lon_end = 95.409253 
+        lon_end = -95.409253 
 
-        start_coord = Waypoint(lat_start, lon_start, alt)
-        end_coord = Waypoint(lat_end, lon_end, alt)
+        # start_coord = Waypoint(lat_start, lon_start, alt)
+        # end_coord = Waypoint(lat_end, lon_end, alt)
 
         try:
             self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
@@ -139,13 +139,34 @@ class HorizontalMission(Mission):
             # self.dc.land()
             # self.log.info('Landed!')
 
-            self.dc.goto(coords=(start_coord.lat, start_coord.lon), altitude=start_coord.alt, airspeed=2)
-            self.log.debug('Arrived at starting location, now heading toward end location')
+        #Move to start location
+            nextlat, nextlon = lat_start, lon_start
+
+            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
             time.sleep(5)
 
-            self.dc.goto(coords=(end_coord.lat, end_coord.lon), altitude=end_coord.alt, airspeed=2)
-            self.log.debug('Arrived at end location. Landing')
+        #Move to end location
+            nextlat, nextlon = lat_end, lon_end
+
+            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
+            self.log.debug('Navigation to waypoint complete')
+
+            location = self.dc.read_gps()
+            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+
             time.sleep(5)
+
+
+        #Mission Complete: Landing
+
+            self.log.info('Mission complete; begin landing')
             self.dc.land()
             self.log.info('Landed!')
 
