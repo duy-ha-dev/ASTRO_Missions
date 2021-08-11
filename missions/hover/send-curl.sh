@@ -25,7 +25,7 @@ generate_post_data()
 {
  	cat <<EOF
 {
-  	"alt": $alt,
+  "alt": $alt,
 	"hover_time": $hover_time
 }
 EOF

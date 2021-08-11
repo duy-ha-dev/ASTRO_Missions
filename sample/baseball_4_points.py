@@ -9,13 +9,7 @@ from skymission.concurrency import tick
 from skymission.mission import Mission
 from skymission.mission import callback
 from skymission.mission import panic
-#import geo 
 
-# class Waypoint:
-#     def __init__(self, lat, lon, alt):
-#         self.lat = lat
-#         self.lon = lon
-#         self.alt = alt
 
 class LocationMessage(BaseMessage):
     """
@@ -46,17 +40,17 @@ class LocationMessage(BaseMessage):
         )
 
 
-class AoAMission(Mission):
+class HoverMission(Mission):
     """
-    A mission to take off, move toward 6 specified points along an arc, and land.
+    A mission to take off, hover, and land.
     """
 
     port = 4000
-    mission_id = 'aoa'
+    mission_id = 'hover'
 
     def __init__(self, fc_addr, log_file):
         """
-        Create a AoAMission, which is started as soon as the class is instantiated.
+        Create a HoverMission, which is started as soon as the class is instantiated.
 
         :param fc_addr: MAVProxy address of the flight controller.
         :param log_file: Name of log file for location data.
@@ -68,7 +62,7 @@ class AoAMission(Mission):
         self.log.debug('Drone controller and logger initialized successfully')
 
         self.cancel_tick = self.start_location_log()
-        self.log.info('AoA point-to-point mission initialization complete')
+        self.log.info('Hover mission initialization complete')
 
         self.start_server()
 
@@ -94,47 +88,22 @@ class AoAMission(Mission):
 
     @callback(
         endpoint='/start-mission',
-        description='Gives the drone an altitude and hover_time.',
+        description='Gives the drone an altitude and hover time.',
         required_params=('alt', 'hover_time'),
         public=True,
     )
     def start_mission(self, data, *args, **kwargs):
         """
-        Client-invoked endpoint to begin the AoA mission.
+        Client-invoked endpoint to begin the hover mission.
 
         :param data: Required to be of the form:
                      {
                          'alt': ...,  # Target altitude (m)
-                         'distance': ..., # distance travel (s)
+                         'hover_time': ..., # Hover time (s)
                      }
         """
         alt = data['alt']
         hover_time = data['hover_time']
-  
-
-
-        #Initializing our 5 points
-        ####For future reference, consider making the number of up-and-down vertical movements a parameter####
-        lat1 = 29.716639
-        lon1 = -95.409102
-        lat2 = 29.716492
-        lon2 = -95.409221
-        lat3 = 29.716332
-        lon3 = -95.409306
-        lat4 = 29.716177
-        lon4 = -95.409357
-        lat5 = 29.715990
-        lon5 = -95.409374
-        lat6 = 29.715821
-        lon6 = -95.409368
-
-        # first_coord = Waypoint(lat1, lon1, alt)
-        # second_coord = Waypoint(lat2, lon2, alt)
-        # third_coord = Waypoint(lat3, lon3, alt)
-        # fourth_coord = Waypoint(lat4, lon4, alt)
-        # fifth_coord = Waypoint(lat5, lon5, alt)
-        # sixth_coord = Waypoint(lat6, lon6, alt)
-
 
         try:
             self.log.debug('Taking off to altitude: {alt}'.format(alt=alt))
@@ -146,90 +115,61 @@ class AoAMission(Mission):
             location = self.dc.read_gps()
             self.log.debug('Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            # self.log.debug('Hovering for: {hover_time} seconds'.format(hover_time=hover_time))
-            # time.sleep(hover_time)
+	        # Moving to location 1
 
-            # self.log.info('Hovering complete; moving to start')
-            # self.dc.land()
-            # self.log.info('Landed!')
+            nextlat, nextlon = 29.713324109541617, -95.40429670036721
 
-        #Move to First Location
-            nextlat, nextlon = lat1, lon1
-
-            self.log.debug('Navigating to waypoint 1: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=1)
+            self.log.debug('1: Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
+            time.sleep(3)
 
-        #Move to Second Location
-            nextlat, nextlon = lat2, lon2
+            # Moving to location 2
 
-            self.log.debug('Navigating to waypoint 2: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            nextlat, nextlon = 29.713267428493214, -95.40407566215762
 
-            location = self.dc.read_gps()
-            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
-
-            time.sleep(5)
-
-        #Move to Third Location
-            nextlat, nextlon = lat3, lon3
-
-            self.log.debug('Navigating to waypoint 3: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=1)
+            self.log.debug('2: Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
-        
-        #Move to Fourth Location
-            nextlat, nextlon = lat4, lon4
+            time.sleep(3)
 
-            self.log.debug('Navigating to waypoint 4: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            # Moving to location 3
 
-            location = self.dc.read_gps()
-            self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
+            nextlat, nextlon = 29.71330151660872, -95.40390739519701
 
-            time.sleep(5)
-        
-        #Move to Fifth Location
-            nextlat, nextlon = lat5, lon5
-
-            self.log.debug('Navigating to waypoint 5: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=1)
+            self.log.debug('3: Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
+            time.sleep(3)
 
-        #Move to Sixth Location
-            nextlat, nextlon = lat6, lon6
+            # Moving to location
 
-            self.log.debug('Navigating to waypoint 6: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
-            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=2)
-            self.log.debug('Navigation to waypoint complete')
+            nextlat, nextlon = 29.713408784299627, -95.40376340708168
+
+            self.log.debug('Navigating to waypoint: ({lat}, {lon})'.format(lat=nextlat,lon=nextlon,))
+            self.dc.goto(coords=(nextlat, nextlon), altitude=alt, airspeed=1)
+            self.log.debug('4: (LAST) Navigation to waypoint complete')
 
             location = self.dc.read_gps()
             self.log.debug('Arrived! Current location: ({lat}, {lon})'.format(lat=location.lat,lon=location.lon,))
 
-            time.sleep(5)
+            time.sleep(3)
 
-            
-            self.log.info('Mission complete; begin landing')
+            self.log.info('Hovering complete; begin landing')
             self.dc.land()
             self.log.info('Landed!')
-
         except FlightAbortedException:
             self.log.warn('Flight aborted due to emergency panic!')
 
@@ -255,7 +195,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    AoAMission(
+    HoverMission(
         fc_addr=args.fc_addr,
         log_file=args.log_file,
     )

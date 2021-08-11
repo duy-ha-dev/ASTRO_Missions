@@ -4,6 +4,7 @@
 
 # Mission Parameters:
 alt=5
+hover_time=60
 
 
 
@@ -26,6 +27,7 @@ generate_post_data()
  	cat <<EOF
 {
   	"alt": $alt
+    "hover_time": $hover_time
 
 }
 EOF
