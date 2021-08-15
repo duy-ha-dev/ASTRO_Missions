@@ -12,4 +12,4 @@ $ python aoa.py --fc-addr <flight controller MAV proxy address> --log-file <name
 
 |Endpoint|Purpose|Required parameters|
 |-|-|-|
-|`/start-mission`|Instructs the drone to takeoff to the specified altitude, move to 6 specified points along an arc, and land.|`alt`|
+|`/start-mission`|Instructs the drone to takeoff to the specified altitude, move to 6 specified points along an arc, and land.|`alt`, `hover_time`|
